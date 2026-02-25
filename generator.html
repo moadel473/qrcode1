@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Generator – أنشئ رمزك</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: #0a0a1a;
+      min-height: 100vh;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.25;
+      animation: float 10s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .blob1 { width: 450px; height: 450px; background: #6c3fe6; top: -100px; right: -100px; }
+    .blob2 { width: 380px; height: 380px; background: #00c8ff; bottom: -80px; left: -80px; animation-delay: 4s; }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-25px); }
+    }
+
+    /* ─── Navbar ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 40px;
+      background: rgba(10,10,26,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      z-index: 100;
+    }
+    .nav-brand {
+      font-size: 1.3rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #a78bfa, #60eeff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: #a78bfa; }
+
+    /* ─── Main container ─── */
+    main {
+      min-height: calc(100vh - 65px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 560px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 28px;
+      padding: 52px 48px;
+      backdrop-filter: blur(20px);
+      animation: fadeUp 0.7s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header { text-align: center; margin-bottom: 36px; }
+    .card-icon {
+      font-size: 3.2rem;
+      display: block;
+      margin-bottom: 14px;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.08); }
+    }
+    .card-header h1 {
+      font-size: 1.75rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #a78bfa, #60eeff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .card-header p {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.95rem;
+    }
+
+    /* ─── Form ─── */
+    .field { margin-bottom: 22px; }
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap svg {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: rgba(255,255,255,0.3);
+      pointer-events: none;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 15px 46px 15px 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      color: #fff;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+      direction: ltr;
+    }
+    input[type="text"]::placeholder { color: rgba(255,255,255,0.25); }
+    input[type="text"]:focus {
+      border-color: #a78bfa;
+      background: rgba(167,139,250,0.08);
+      box-shadow: 0 0 0 4px rgba(167,139,250,0.15);
+    }
+
+    /* ─── Generate button ─── */
+    .btn-gen {
+      width: 100%;
+      padding: 17px;
+      background: linear-gradient(135deg, #6c3fe6 0%, #00c8ff 100%);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 6px 30px rgba(108,63,230,0.4);
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-gen::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-gen:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(108,63,230,0.55); }
+    .btn-gen:hover::after { opacity: 1; }
+    .btn-gen:active { transform: scale(0.98); }
+    .btn-gen:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* spinner inside button */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Toast notification ─── */
+    #toast {
+      position: fixed;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      min-width: 300px;
+      max-width: 90vw;
+      padding: 18px 24px;
+      border-radius: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s, transform 0.35s;
+      z-index: 9999;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    #toast.success { background: rgba(16, 185, 129, 0.2); border-color: rgba(16,185,129,0.4); }
+    #toast.error   { background: rgba(239, 68, 68, 0.2);  border-color: rgba(239,68,68,0.4); }
+    .toast-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 1px; }
+    .toast-body { flex: 1; }
+    .toast-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+    .toast-path {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.55);
+      direction: ltr;
+      word-break: break-all;
+      margin-top: 4px;
+    }
+    .toast-close {
+      background: none; border: none; color: rgba(255,255,255,0.4);
+      cursor: pointer; font-size: 1.1rem; padding: 0; line-height: 1;
+      flex-shrink: 0;
+    }
+    .toast-close:hover { color: #fff; }
+
+    /* ─── Divider ─── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 0;
+      color: rgba(255,255,255,0.2);
+      font-size: 0.8rem;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="/" class="nav-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      رجوع
+    </a>
+    <span class="nav-brand">⬛ QR Generator</span>
+    <span style="width:60px"></span>
+  </nav>
+
+  <main>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">📱</span>
+        <h1>أنشئ رمز QR</h1>
+        <p>أدخل الرابط واسم الملف وسيتم الحفظ تلقائياً</p>
+      </div>
+
+      <div class="field">
+        <label>🔗 الرابط (URL)</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          <input type="text" id="urlInput" placeholder="https://example.com" autocomplete="off"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>📁 اسم الملف</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+          </svg>
+          <input type="text" id="nameInput" placeholder="my-qrcode" autocomplete="off"/>
+        </div>
+      </div>
+
+      <button class="btn-gen" id="genBtn" onclick="generate()">
+        <div class="spinner" id="spinner"></div>
+        <span id="btnText">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display:inline;vertical-align:middle;margin-left:6px">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/><path d="M17 14v3M14 17h3M17 20v1M20 17h1"/>
+          </svg>
+          إنشاء QR Code
+        </span>
+      </button>
+
+      <div class="divider">حفظ تلقائي في Downloads/qrcode</div>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast">
+    <span class="toast-icon" id="toastIcon">✅</span>
+    <div class="toast-body">
+      <div class="toast-title" id="toastTitle"></div>
+      <div class="toast-path" id="toastPath"></div>
+    </div>
+    <button class="toast-close" onclick="hideToast()">✕</button>
+  </div>
+
+  <script>
+    let toastTimer;
+
+    async function generate() {
+      const url  = document.getElementById('urlInput').value.trim();
+      const name = document.getElementById('nameInput').value.trim() || 'qrcode';
+
+      if (!url) {
+        showToast('error', '⚠️', 'الرابط مطلوب', 'يرجى إدخال رابط صحيح أولاً');
+        document.getElementById('urlInput').focus();
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const res  = await fetch('/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, filename: name })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showToast('success', '✅', data.message, data.path);
+          document.getElementById('urlInput').value  = '';
+          document.getElementById('nameInput').value = '';
+        } else {
+          showToast('error', '❌', 'حدث خطأ', data.message);
+        }
+      } catch (e) {
+        showToast('error', '❌', 'تعذّر الاتصال بالخادم', e.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function setLoading(on) {
+      const btn     = document.getElementById('genBtn');
+      const spinner = document.getElementById('spinner');
+      const txt     = document.getElementById('btnText');
+      btn.disabled        = on;
+      spinner.style.display = on ? 'block' : 'none';
+      txt.style.display   = on ? 'none'  : 'flex';
+    }
+
+    function showToast(type, icon, title, path) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastIcon').textContent  = icon;
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastPath').textContent  = path || '';
+      t.className = `show ${type}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(hideToast, 6000);
+    }
+
+    function hideToast() {
+      document.getElementById('toast').className = '';
+    }
+
+    // Enter key support
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') generate();
+    });
+  </script>
+</body>
+</html>
